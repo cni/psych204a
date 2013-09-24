@@ -1,4 +1,4 @@
-psych204a
-=========
+Psych204A Human Neuroimaging Methods
+====================================
 
-Stanford human neuroimaging methods course materials
+Course materials for Psychology 204A
