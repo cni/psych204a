@@ -72,6 +72,15 @@ def vtk_render_window(iso, img=None, color=[0.5,0.5,0.5]):
     iren.Initialize()
     return iren
 
+def montage(vol, ncols=None):
+    """Returns a 2d image monage given a 3d volume."""
+    ncols = ncols if ncols else int(np.ceil(np.sqrt(vol.shape[2])))
+    rows = np.array_split(vol, range(ncols,vol.shape[2],ncols), axis=2)
+    # ensure the last row is the same size as the others
+    rows[-1] = np.dstack((rows[-1], np.zeros(rows[-1].shape[0:2] + (rows[0].shape[2]-rows[-1].shape[2],))))
+    im = np.vstack([np.squeeze(np.hstack(np.dsplit(row, ncols))) for row in rows])
+    return(im)
+
 # get the pial surface
 brainmask = nibabel.load('t1_brain_mask.nii.gz')
 brainmask_vol = brainmask.get_data()
@@ -83,10 +92,14 @@ t1_vol = t1.get_data()
 # apply the brain mask to remove the scalp
 t1_vol[brainmask_vol==0] = 0
 # segment the white matter
-wm_vol = (t1_vol>24500).astype(np.float)
+wm_vol = (t1_vol>7000).astype(np.float)
 wm_vol = ndimage.gaussian_filter(wm_vol.astype(float), 0.3)
 wm_vol = ndimage.measurements.label(wm_vol)[0]
 wm_vol = (wm_vol==1).astype(np.uint16)
+
+imshow(montage(t1_vol[:,:,20:2:200]), cmap='gray')
+show()
+
 wm_iso,wm_img = vtk_iso(wm_vol)
 wm_iso = vtk_smooth(wm_iso, 20, 0.3, 0.2)
 
